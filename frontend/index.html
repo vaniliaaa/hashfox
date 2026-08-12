@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HashFox — Smart Hash Intelligence &amp; Pentest Assistant</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<nav id="quick-nav" class="quick-nav" hidden aria-label="Section navigation">
+  <a href="#hash-input">↑ Back to analysis</a>
+  <a href="#results-panel">Results</a>
+  <a href="#pentest-panel">Pentest Assistant</a>
+</nav>
+
+<header class="site-header" id="top">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="34" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 6 L38 16 L34 30 L24 40 L14 30 L10 16 Z" stroke="var(--fox-orange)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M24 6 L30 2 L28 12 Z" fill="var(--fox-orange)"/>
+          <path d="M24 6 L18 2 L20 12 Z" fill="var(--fox-orange)"/>
+          <circle cx="19" cy="22" r="1.6" fill="var(--cyber-green)"/>
+          <circle cx="29" cy="22" r="1.6" fill="var(--cyber-green)"/>
+          <path d="M20 29 Q24 33 28 29" stroke="var(--fox-orange-soft)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <div class="brand-text">
+        <h1>HashFox</h1>
+        <p class="subtitle">Smart Hash Intelligence &amp; Pentest Assistant</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="badge badge-offline">
+        <span class="badge-dot" aria-hidden="true"></span>
+        OFFLINE INTELLIGENCE
+      </span>
+      <p class="tagline">Identify&nbsp;•&nbsp;Analyze&nbsp;•&nbsp;Explain&nbsp;•&nbsp;Prepare</p>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="panel input-panel" aria-labelledby="input-heading">
+    <h2 id="input-heading" class="panel-title">Analyze a hash</h2>
+    <p class="panel-hint">Everything runs locally against HashFox's offline format database. Nothing you paste here ever leaves this machine.</p>
+
+    <form id="analyze-form" novalidate>
+      <label class="field-label" for="hash-input">Hash or encoded password representation</label>
+      <textarea
+        id="hash-input"
+        name="hash"
+        rows="3"
+        placeholder="Paste an unknown hash or password representation..."
+        autocomplete="off"
+        spellcheck="false"
+      ></textarea>
+
+      <div class="input-row">
+        <div class="input-actions">
+          <button type="submit" id="analyze-btn" class="btn btn-primary">
+            <span class="btn-label">Analyze hash</span>
+            <span class="btn-shortcut" aria-hidden="true">Ctrl + Enter</span>
+          </button>
+          <button type="button" id="clear-btn" class="btn btn-ghost">Clear</button>
+          <button type="button" id="sample-btn" class="btn btn-ghost">Try a sample</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="loading-state" class="loading-state" hidden aria-live="polite">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <span>Fox is analyzing the trail…</span>
+    </div>
+
+    <div id="error-state" class="error-banner" hidden role="alert"></div>
+  </section>
+
+  <section class="panel results-panel" id="results-panel" hidden aria-labelledby="results-heading">
+    <h2 id="results-heading" class="panel-title">Analysis</h2>
+
+    <dl class="summary-grid" id="summary-grid" aria-label="Analysis summary"></dl>
+
+    <div id="ambiguity-warning" class="warning-banner" hidden role="status"></div>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <p class="empty-state-title">No reliable structural match found.</p>
+      <ul class="empty-state-hints">
+        <li>Check whether the value may be truncated or partially copied.</li>
+        <li>Verify whether it is encoded (e.g. Base64) rather than hashed.</li>
+        <li>Confirm the source/context of the value before trying again.</li>
+      </ul>
+    </div>
+
+    <div id="candidates-section" hidden>
+      <div class="candidates-heading-row">
+        <h3 id="candidates-heading" class="candidates-heading">Top plausible matches</h3>
+        <p id="tie-summary" class="tie-summary" hidden></p>
+      </div>
+
+      <div id="candidate-list" class="candidate-list" aria-label="Ranked candidate formats"></div>
+
+      <div id="weaker-controls" class="weaker-controls" hidden>
+        <button type="button" id="toggle-weaker-btn" class="btn btn-ghost"></button>
+      </div>
+    </div>
+
+    <p class="back-to-analysis"><a href="#hash-input">↑ Back to analysis</a></p>
+  </section>
+
+  <section class="panel pentest-panel" id="pentest-panel" hidden aria-labelledby="pentest-heading">
+    <h2 id="pentest-heading" class="panel-title">Pentest Assistant</h2>
+    <p class="panel-hint">Prepared commands — review before running. HashFox prepares Hashcat and John the Ripper commands, but never executes cracking itself.</p>
+
+    <form id="pentest-form" novalidate>
+      <div class="pentest-fields">
+        <div class="field-group">
+          <label class="field-label" for="hash-file-input">Hash file</label>
+          <input type="text" id="hash-file-input" name="hash_file" placeholder="hash.txt" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="wordlist-input">Wordlist</label>
+          <input type="text" id="wordlist-input" name="wordlist" placeholder="/usr/share/wordlists/rockyou.txt" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="rules-input">Rules file <span class="field-optional">(optional)</span></label>
+          <input type="text" id="rules-input" name="rules_file" placeholder="e.g. best64.rule" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="mask-input">Mask <span class="field-optional">(optional)</span></label>
+          <input type="text" id="mask-input" name="mask" placeholder="e.g. ?d?d?d?d" autocomplete="off" spellcheck="false" />
+        </div>
+      </div>
+      <button type="submit" id="pentest-btn" class="btn btn-primary">Prepare pentest commands</button>
+    </form>
+
+    <div id="pentest-loading" class="loading-state" hidden aria-live="polite">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <span>Preparing commands…</span>
+    </div>
+
+    <div id="pentest-error" class="error-banner" hidden role="alert"></div>
+
+    <div id="pentest-results" class="pentest-results" hidden>
+      <div id="pentest-warning" class="warning-banner" hidden role="status"></div>
+
+      <div id="pentest-targets" class="target-list" aria-label="Prepared attack targets"></div>
+
+      <div class="pentest-guidance">
+        <div class="guidance-block">
+          <h3>Recommended attack sequence</h3>
+          <ol id="attack-sequence" class="guidance-list"></ol>
+        </div>
+        <div class="guidance-block">
+          <h3>Next steps</h3>
+          <ol id="next-steps" class="guidance-list"></ol>
+        </div>
+      </div>
+
+      <div class="fox-tip" id="fox-tip"></div>
+    </div>
+
+    <p class="back-to-analysis"><a href="#hash-input">↑ Back to analysis</a></p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>HashFox runs entirely offline against a local format database. No hash you enter is sent anywhere except this application's own backend.</p>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<template id="candidate-card-template">
+  <article class="candidate-card">
+    <header class="candidate-header">
+      <div class="candidate-heading">
+        <h3 class="candidate-name"></h3>
+        <p class="candidate-aliases"></p>
+      </div>
+      <div class="confidence-ring" role="img">
+        <svg viewBox="0 0 64 64" width="64" height="64">
+          <circle class="ring-track" cx="32" cy="32" r="27" />
+          <circle class="ring-value" cx="32" cy="32" r="27" />
+        </svg>
+        <span class="confidence-value"></span>
+      </div>
+    </header>
+
+    <div class="candidate-meta">
+      <div class="meta-item"><span class="meta-label">Category</span><span class="meta-value candidate-category"></span></div>
+      <div class="meta-item"><span class="meta-label">Hashcat mode</span><span class="meta-value candidate-hashcat-mode"></span></div>
+      <div class="meta-item"><span class="meta-label">John format</span><span class="meta-value candidate-john-format"></span></div>
+      <div class="meta-item"><span class="meta-label">Security level</span><span class="meta-value candidate-security-level"></span></div>
+      <div class="meta-item"><span class="meta-label">Detection quality</span><span class="meta-value candidate-detection-quality"></span></div>
+    </div>
+
+    <p class="candidate-description"></p>
+
+    <div class="candidate-usage" hidden>
+      <h4>Common usage</h4>
+      <ul class="usage-list"></ul>
+    </div>
+
+    <div class="candidate-reasons">
+      <h4>Why it matched</h4>
+      <ul class="reasons-list"></ul>
+    </div>
+  </article>
+</template>
+
+<template id="target-panel-template">
+  <article class="target-panel">
+    <header class="target-header">
+      <h3 class="target-name"></h3>
+      <span class="target-confidence"></span>
+    </header>
+
+    <div class="command-group">
+      <h4 class="command-group-title">Hashcat</h4>
+      <p class="command-meta">Mode: <span class="target-hashcat-mode"></span></p>
+
+      <div class="command-block dictionary-block" hidden>
+        <p class="command-block-label">Dictionary command</p>
+        <div class="command-row">
+          <code class="command-text dictionary-command"></code>
+          <button type="button" class="btn btn-copy" data-copy-target="dictionary">Copy</button>
+        </div>
+      </div>
+
+      <div class="command-block rules-block" hidden>
+        <p class="command-block-label">Rule-based command</p>
+        <div class="command-row">
+          <code class="command-text rules-command"></code>
+          <button type="button" class="btn btn-copy" data-copy-target="rules">Copy</button>
+        </div>
+      </div>
+
+      <div class="command-block mask-block" hidden>
+        <p class="command-block-label">Mask command</p>
+        <div class="command-row">
+          <code class="command-text mask-command"></code>
+          <button type="button" class="btn btn-copy" data-copy-target="mask">Copy</button>
+        </div>
+      </div>
+
+      <p class="command-unavailable hashcat-unavailable" hidden>Hashcat mode unavailable for this candidate.</p>
+    </div>
+
+    <div class="command-group">
+      <h4 class="command-group-title">John the Ripper</h4>
+      <p class="command-meta">Format: <span class="target-john-format"></span></p>
+
+      <div class="command-block john-block" hidden>
+        <p class="command-block-label">Command</p>
+        <div class="command-row">
+          <code class="command-text john-command"></code>
+          <button type="button" class="btn btn-copy" data-copy-target="john">Copy</button>
+        </div>
+      </div>
+
+      <p class="command-unavailable john-unavailable" hidden></p>
+    </div>
+
+    <div class="target-extra">
+      <div class="meta-item"><span class="meta-label">Security level</span><span class="meta-value target-security-level"></span></div>
+      <div class="usage-inline">
+        <span class="meta-label">Common usage</span>
+        <span class="target-common-usage"></span>
+      </div>
+    </div>
+  </article>
+</template>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
